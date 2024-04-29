@@ -1,8 +1,8 @@
 // noinspection ES6PreferShortImport
 
-import { getPluginsList } from "./build//plugins";
-import { include, exclude } from "./build//optimize";
-import { type UserConfigExport, type ConfigEnv, loadEnv } from "vite";
+import {getPluginsList} from "./build//plugins";
+import {include, exclude} from "./build//optimize";
+import {type UserConfigExport, type ConfigEnv, loadEnv} from "vite";
 import {
   root,
   alias,
@@ -11,8 +11,8 @@ import {
   __APP_INFO__
 } from "./build/utils";
 
-export default ({ mode }: ConfigEnv): UserConfigExport => {
-  const { VITE_CDN, VITE_PORT, VITE_COMPRESSION, VITE_PUBLIC_PATH } =
+export default ({mode}: ConfigEnv): UserConfigExport => {
+  const {VITE_CDN, VITE_PORT, VITE_COMPRESSION, VITE_PUBLIC_PATH} =
     warpperEnv(loadEnv(mode, root));
   return {
     base: VITE_PUBLIC_PATH,
@@ -29,7 +29,8 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
       proxy: {
         "/api": {
           // 这里填写后端地址
-          target: "http://127.0.0.1:8080",
+          // target: "http://127.0.0.1:8080",
+          target: "http://elysianserver.chqcloud.top",
           changeOrigin: true,
           rewrite: path => path.replace(/^\/api/, "")
         }

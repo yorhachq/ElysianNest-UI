@@ -13,7 +13,7 @@ import type {FormInstance} from "element-plus";
 import {$t, transformI18n} from "@/plugins/i18n";
 import {useLayout} from "@/layout/hooks/useLayout";
 import {useUserStoreHook} from "@/store/modules/user";
-import {addPathMatch} from "@/router/utils";
+import {initRouter, getTopMenu} from "@/router/utils";
 import {bg, avatar, illustration} from "./utils/static";
 import {ref, toRaw, reactive, computed} from "vue";
 import {useRenderIcon} from "@/components/ReIcon/src/hooks";
@@ -26,7 +26,7 @@ import globalization from "@/assets/svg/globalization.svg?component";
 import Lock from "@iconify-icons/ri/lock-fill";
 import Check from "@iconify-icons/ep/check";
 import User from "@iconify-icons/ri/user-3-fill";
-import {usePermissionStoreHook} from "@/store/modules/permission";
+import Regist from "@/views/login/components/regist.vue";
 
 defineOptions({
   name: "Login"
@@ -65,11 +65,16 @@ const onLogin = async (formEl: FormInstance | undefined) => {
         })
         .then(res => {
           if (res.success) {
-            // 全部采取静态路由模式
-            usePermissionStoreHook().handleWholeMenus([]);
-            addPathMatch();
-            router.push("/");
-            message("登录成功", {type: "success"});
+            // 获取后端路由
+            return initRouter().then(() => {
+              disabled.value = true;
+              router
+                .push(getTopMenu(true).path)
+                .then(() => {
+                  message("登录成功", {type: "success"});
+                })
+                .finally(() => (disabled.value = false));
+            });
           }
         })
         .finally(() => (loading.value = false));
@@ -89,6 +94,8 @@ useEventListener(document, "keypress", ({code}) => {
   if (code === "Enter" && !disabled.value && !loading.value)
     immediateDebounce(ruleFormRef.value);
 });
+
+const {VITE_UI_URL} = import.meta.env;
 </script>
 
 <template>
@@ -104,37 +111,37 @@ useEventListener(document, "keypress", ({code}) => {
         @change="dataThemeChange"
       />
       <!-- 国际化 -->
-      <el-dropdown trigger="click">
-        <globalization
-          class="hover:text-primary hover:!bg-[transparent] w-[20px] h-[20px] ml-1.5 cursor-pointer outline-none duration-300"
-        />
-        <template #dropdown>
-          <el-dropdown-menu class="translation">
-            <el-dropdown-item
-              :style="getDropdownItemStyle(locale, 'zh')"
-              :class="['dark:!text-white', getDropdownItemClass(locale, 'zh')]"
-              @click="translationCh"
-            >
-              <IconifyIconOffline
-                v-show="locale === 'zh'"
-                class="check-zh"
-                :icon="Check"
+      <!--      <el-dropdown trigger="click">
+              <globalization
+                class="hover:text-primary hover:!bg-[transparent] w-[20px] h-[20px] ml-1.5 cursor-pointer outline-none duration-300"
               />
-              简体中文
-            </el-dropdown-item>
-            <el-dropdown-item
-              :style="getDropdownItemStyle(locale, 'en')"
-              :class="['dark:!text-white', getDropdownItemClass(locale, 'en')]"
-              @click="translationEn"
-            >
-              <span v-show="locale === 'en'" class="check-en">
-                <IconifyIconOffline :icon="Check"/>
-              </span>
-              English
-            </el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
+              <template #dropdown>
+                <el-dropdown-menu class="translation">
+                  <el-dropdown-item
+                    :style="getDropdownItemStyle(locale, 'zh')"
+                    :class="['dark:!text-white', getDropdownItemClass(locale, 'zh')]"
+                    @click="translationCh"
+                  >
+                    <IconifyIconOffline
+                      v-show="locale === 'zh'"
+                      class="check-zh"
+                      :icon="Check"
+                    />
+                    简体中文
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    :style="getDropdownItemStyle(locale, 'en')"
+                    :class="['dark:!text-white', getDropdownItemClass(locale, 'en')]"
+                    @click="translationEn"
+                  >
+                    <span v-show="locale === 'en'" class="check-en">
+                      <IconifyIconOffline :icon="Check" />
+                    </span>
+                    English
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>-->
     </div>
     <div class="login-container">
       <div class="img">
@@ -195,8 +202,9 @@ useEventListener(document, "keypress", ({code}) => {
 
             <Motion :delay="250">
               <el-form-item>
-                <div class="w-full h-[20px] flex justify-between items-center">
+                <div class="w-full h-[20px] flex-col justify-between items-center">
                   <el-button
+                    class="float-end"
                     link
                     type="primary"
                     @click="useUserStoreHook().SET_CURRENTPAGE(4)"
@@ -216,7 +224,22 @@ useEventListener(document, "keypress", ({code}) => {
                 </el-button>
               </el-form-item>
             </Motion>
+            <Motion :delay="300">
+              <el-form-item>
+                <div class="w-full h-[20px] flex justify-between items-center">
+                  <el-button
+                    class="w-full"
+                    size="default"
+                    @click="useUserStoreHook().SET_CURRENTPAGE(3)"
+                  >
+                    注册
+                  </el-button>
+                </div>
+              </el-form-item>
+            </Motion>
           </el-form>
+          <!--用户注册-->
+          <regist v-if="currentPage === 3"/>
           <!-- 忘记密码 -->
           <forget-pwd v-if="currentPage === 4"/>
         </div>

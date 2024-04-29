@@ -36,9 +36,16 @@ export type Result = {
   data: {};
 };
 
+/** 注册 */
+export const register = (data?: object) => {
+  return http.request<UserResult>("post", baseUrlApi("hotelMember/registerMember"), {
+    data
+  });
+};
+
 /** 登录 */
 export const getLogin = (params?: object) => {
-  return http.request<UserResult>("post", baseUrlApi("sysUser/login"), {
+  return http.request<UserResult>("post", baseUrlApi("hotelMember/login"), {
     params
   });
 };
@@ -59,9 +66,27 @@ export const getUserInfo = () => {
   return http.request<UserResult>("get", baseUrlApi("sysUser/userInfo"));
 };
 
-/** 发送邮箱验证码 */
+export const getUserInfoById = (id?: number) => {
+  return http.request<UserResult>("get", baseUrlApi(`sysUser/userInfo/${id}`));
+};
+
+/** 更新用户信息 */
+export const updateUserInfo = (data?: object) => {
+  return http.request<Result>("put", baseUrlApi("sysUser/update"), {
+    data
+  });
+};
+
+/** 发送邮箱验证码(重置密码) */
 export const sendEmailCodeService = (data?: object) => {
   return http.request<Result>("post", baseUrlApi("sysUser/sendVerifyEmail"), {
+    data
+  });
+};
+
+/** 发送邮箱验证码(注册) */
+export const sendEmailCodeServiceForRegister = (data?: object) => {
+  return http.request<Result>("post", baseUrlApi("hotelMember/sendVerifyEmail"), {
     data
   });
 };
@@ -71,7 +96,79 @@ export const resetPwdService = (data?: object) => {
   return http.request<Result>("post", baseUrlApi("sysUser/resetPwd"), { data });
 };
 
+/** 修改密码 */
+export const updatePwdService = (data?: object) => {
+  return http.request<Result>("patch", baseUrlApi("sysUser/updatePwd"), {
+    data
+  });
+};
+
+/** 管理员更新用户密码 */
+export const updatePwdByAdmin = (data?: object) => {
+  return http.request<Result>("patch", baseUrlApi("sysUser/updatePwdByAdmin"), {
+    data
+  });
+};
+
+/** 修改头像 */
+export const updateAvatar = (data?: object) => {
+  return http.request<Result>("post", baseUrlApi("sysUser/updateAvatar"), {
+    data
+  });
+};
+
 /** 退出登录(通过后端销毁Redis中的两个token) */
 export const logout = (data?: object) => {
   return http.request<Result>("post", baseUrlApi("sysUser/logout"), { data });
 };
+
+/** 获取客户端IP归属地 */
+export const getIpRegion = (data?: object) => {
+  return http.request<Result>("get", baseUrlApi("ip/region"), {
+    data
+  });
+};
+
+/** 获取实时天气 */
+export const getWeather = (data?: object) => {
+  return http.request<Result>("get", baseUrlApi("/sysUser/weather"), {
+    data
+  });
+};
+
+/** 员工注册 */
+export const registerUser = (params?: object) => {
+  return http.request<Result>("post", baseUrlApi("sysUser/register"), {
+    params
+  });
+};
+
+/** 获取员工列表 */
+export const getUserList = (params?: object) => {
+  return http.request<Result>("get", baseUrlApi("sysUser/list"), {
+    params
+  });
+};
+
+/**
+ * 更新员工信息
+ */
+export function updateUserByAdmin(data: object) {
+  return http.request<Result>("put", baseUrlApi("sysUser/updateByAdmin"), {
+    data
+  });
+}
+
+/**
+ * 删除员工
+ */
+export function deleteUser(userId: number) {
+  return http.request<Result>("delete", baseUrlApi(`sysUser/delete/${userId}`));
+}
+
+/**
+ * 获取角色列表
+ */
+export function getRoleList() {
+  return http.request<Result>("get", baseUrlApi("sysUser/roles"));
+}

@@ -1,7 +1,7 @@
-import { reactive } from "vue";
-import type { FormRules } from "element-plus";
-import { $t, transformI18n } from "@/plugins/i18n";
-import { isEmail, isPhone } from "@pureadmin/utils";
+import {reactive} from "vue";
+import type {FormRules} from "element-plus";
+import {$t, transformI18n} from "@/plugins/i18n";
+import {isEmail, isPhone} from "@pureadmin/utils";
 
 /** 6位数字验证码正则 */
 export const REGEXP_SIX = /^\d{6}$/;
@@ -33,6 +33,18 @@ const loginRules = reactive(<FormRules>{
 
 /** 忘记密码校验 */
 const updateRules = reactive<FormRules>({
+  username: [
+    {
+      validator: (rule, value, callback) => {
+        if (value === "") {
+          callback(new Error("请输入用户名"));
+        } else {
+          callback();
+        }
+      },
+      trigger: "blur"
+    }
+  ],
   phone: [
     {
       validator: (rule, value, callback) => {
@@ -90,4 +102,4 @@ const updateRules = reactive<FormRules>({
     }
   ]
 });
-export { loginRules, updateRules };
+export {loginRules, updateRules};

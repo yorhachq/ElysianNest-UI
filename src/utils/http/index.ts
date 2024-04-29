@@ -9,12 +9,14 @@ import type {
   PureHttpResponse,
   PureHttpRequestConfig
 } from "./types.d";
-import { stringify } from "qs";
+import {stringify} from "qs";
 import NProgress from "../progress";
-import { getToken, formatToken } from "@/utils/auth";
-import { useUserStoreHook } from "@/store/modules/user";
-import { message } from "@/utils/message";
-import router from "@/router";
+import {getToken, formatToken, removeToken} from "@/utils/auth";
+import {useUserStoreHook} from "@/store/modules/user";
+import {message} from "@/utils/message";
+import router, {resetRouter} from "@/router";
+import {useMultiTagsStoreHook} from "@/store/modules/multiTags";
+import {routerArrays} from "@/layout/types";
 
 // 相关配置请参考：www.axios-js.com/zh-cn/docs/#axios-request-config-1
 const defaultConfig: AxiosRequestConfig = {
@@ -79,43 +81,43 @@ class PureHttp {
         return whiteList.find(url => url === config.url)
           ? config
           : new Promise(resolve => {
-              const data = getToken();
-              if (data) {
-                const now = new Date().getTime();
-                // 预留10秒的刷新时间,提前进行请求
-                // 如网络延迟，导致请求过期，也是预期内允许的情况
-                const period = 10000;
-                const expired = parseInt(data.expires) - now - period <= 0;
-                if (expired) {
-                  if (!PureHttp.isRefreshing) {
-                    PureHttp.isRefreshing = true;
-                    // token过期刷新
-                    useUserStoreHook()
-                      .handRefreshToken({
-                        refreshToken: data.refreshToken,
-                        accessToken: data.accessToken
-                      })
-                      .then(res => {
-                        const token = res.data.accessToken;
-                        config.headers["Authorization"] = formatToken(token);
-                        PureHttp.requests.forEach(cb => cb(token));
-                        PureHttp.requests = [];
-                      })
-                      .finally(() => {
-                        PureHttp.isRefreshing = false;
-                      });
-                  }
-                  resolve(PureHttp.retryOriginalRequest(config));
-                } else {
-                  config.headers["Authorization"] = formatToken(
-                    data.accessToken
-                  );
-                  resolve(config);
+            const data = getToken();
+            if (data) {
+              const now = new Date().getTime();
+              // 预留10秒的刷新时间,提前进行请求
+              // 如网络延迟，导致请求过期，也是预期内允许的情况
+              const period = 10000;
+              const expired = parseInt(data.expires) - now - period <= 0;
+              if (expired) {
+                if (!PureHttp.isRefreshing) {
+                  PureHttp.isRefreshing = true;
+                  // token过期刷新
+                  useUserStoreHook()
+                    .handRefreshToken({
+                      refreshToken: data.refreshToken,
+                      accessToken: data.accessToken
+                    })
+                    .then(res => {
+                      const token = res.data.accessToken;
+                      config.headers["Authorization"] = formatToken(token);
+                      PureHttp.requests.forEach(cb => cb(token));
+                      PureHttp.requests = [];
+                    })
+                    .finally(() => {
+                      PureHttp.isRefreshing = false;
+                    });
                 }
+                resolve(PureHttp.retryOriginalRequest(config));
               } else {
+                config.headers["Authorization"] = formatToken(
+                  data.accessToken
+                );
                 resolve(config);
               }
-            });
+            } else {
+              resolve(config);
+            }
+          });
       },
       error => {
         return Promise.reject(error);
@@ -130,6 +132,17 @@ class PureHttp {
       (response: PureHttpResponse) => {
         // 关闭进度条动画
         NProgress.done();
+
+        const $config = response.config;
+        // 优先判断post/get等方法是否传入回调，否则执行初始化设置等回调
+        if (typeof $config.beforeResponseCallback === "function") {
+          $config.beforeResponseCallback(response);
+          // return response.data;
+        }
+        if (PureHttp.initConfig.beforeResponseCallback) {
+          PureHttp.initConfig.beforeResponseCallback(response);
+          // return response.data;
+        }
         // START
         // 判断业务状态码
         if (response.data.success === true) {
@@ -144,31 +157,23 @@ class PureHttp {
           return Promise.reject(response.data);
         }
         // END
-        /* const $config = response.config;
-
-         // 优先判断post/get等方法是否传入回调，否则执行初始化设置等回调
-         if (typeof $config.beforeResponseCallback === "function") {
-           $config.beforeResponseCallback(response);
-           return response.data;
-         }
-         if (PureHttp.initConfig.beforeResponseCallback) {
-           PureHttp.initConfig.beforeResponseCallback(response);
-           return response.data;
-         }
-         return response.data;*/
       },
       (error: PureHttpError) => {
         const $error = error;
         $error.isCancelRequest = Axios.isCancel($error);
         // 处理401错误
         if (error.response.status === 401) {
-          message("未登录，请先登录！", { type: "warning" });
+          message("未登录，请先登录！", {type: "warning"});
+          // 清除前端登录信息
+          removeToken();
+          useMultiTagsStoreHook().handleTags("equal", [...routerArrays]);
+          resetRouter();
           // 跳转登录页面
           router.push("/login");
         }
         // 处理500错误
         else if (error.response.status === 500) {
-          message("服务器内部错误，请稍后再试。", { type: "error" });
+          message("服务器内部错误，请稍后再试。", {type: "error"});
         } else {
           message("[" + error.response.status + "]服务异常！", {
             type: "error"

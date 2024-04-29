@@ -24,6 +24,8 @@ export const useUserStore = defineStore({
     username: storageLocal().getItem<DataInfo<number>>(userKey)?.username ?? "",
     // 页面级别权限
     roles: storageLocal().getItem<DataInfo<number>>(userKey)?.roles ?? [],
+    // 用户头像
+    avatar: storageLocal().getItem<DataInfo<number>>(userKey)?.avatar ?? "",
     // 判断登录页面显示哪个组件（0：登录（默认）、1：手机登录、2：二维码登录、3：注册、4：忘记密码）
     currentPage: 0,
     // 是否勾选了登录页的免登录
@@ -39,6 +41,10 @@ export const useUserStore = defineStore({
     /** 存储角色 */
     SET_ROLES(roles: Array<string>) {
       this.roles = roles;
+    },
+    /** 存储头像 */
+    SET_AVATAR(avatar: string) {
+      this.avatar = avatar;
     },
     /** 存储登录页面显示哪个组件 */
     SET_CURRENTPAGE(value: number) {
@@ -87,6 +93,26 @@ export const useUserStore = defineStore({
       message("已退出登录", { type: "success" });
       router.push("/login");
     },
+    /**
+     * 仅用于配合拦截Guest，比常规登出少了信息提示和路由跳转
+     * 注意：若本次拦截的用户已登录用户前台，也会在本方法执行后退出登录
+     */
+    throwBack() {
+      this.username = "";
+      this.roles = [];
+      // 后端登出(被重定向前已经在后端登录了，后端拦截器是在获取动态路由时触发的，所以被重定向后也要清空后端登录状态)
+      const accessToken = getToken().accessToken;
+      const refreshToken = getRefreshToken();
+      const data = {
+        accessToken: accessToken,
+        refreshToken: refreshToken
+      };
+      logout(data);
+      // 前端删除
+      removeToken();
+      useMultiTagsStoreHook().handleTags("equal", [...routerArrays]);
+      resetRouter();
+    },
     /** 刷新`token` */
     async handRefreshToken(data) {
       return new Promise<RefreshTokenResult>((resolve, reject) => {
@@ -102,7 +128,8 @@ export const useUserStore = defineStore({
           });
       });
     }
-  }
+  },
+  persist: true
 });
 
 export function useUserStoreHook() {
