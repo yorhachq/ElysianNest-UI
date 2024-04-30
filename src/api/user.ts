@@ -63,7 +63,7 @@ export const refreshTokenApi = (data?: object) => {
 
 /** 获取用户信息 */
 export const getUserInfo = () => {
-  return http.request<UserResult>("get", baseUrlApi("sysUser/userInfo"));
+  return http.request<UserResult>("get", baseUrlApi("client/userInfo"));
 };
 
 export const getUserInfoById = (id?: number) => {
@@ -131,7 +131,7 @@ export const getIpRegion = (data?: object) => {
 
 /** 获取实时天气 */
 export const getWeather = (data?: object) => {
-  return http.request<Result>("get", baseUrlApi("/sysUser/weather"), {
+  return http.request<Result>("get", baseUrlApi("client/weather"), {
     data
   });
 };
