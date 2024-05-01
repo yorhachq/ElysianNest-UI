@@ -107,7 +107,7 @@ nextTick(() => {
     </el-menu>
     <div class="horizontal-header-right">
         <!-- 天气模块 -->
-        <p class="text-gray-200 text-center mr-5">
+        <p class="text-gray-100 text-center mr-5">
           {{ weatherData.location }}&emsp;
           <i :class="'qi-' + weatherData.icon"/>
           {{ weatherData.weather }}&emsp;{{
