@@ -106,79 +106,80 @@ nextTick(() => {
       />
     </el-menu>
     <div class="horizontal-header-right">
-        <!-- 天气模块 -->
-        <p class="text-gray-100 text-center mr-5">
-          {{ weatherData.location }}&emsp;
-          <i :class="'qi-' + weatherData.icon"/>
-          {{ weatherData.weather }}&emsp;{{
-            weatherData.temperature
-          }}°C&emsp;{{
-            weatherData.windDirection
-          }}&emsp;空气质量：{{ weatherData.air }}
-        </p>
-        <!-- 菜单搜索 -->
-        <Search id="header-search"/>
-        <!-- 国际化 -->
-        <!--      <el-dropdown id="header-translation" trigger="click">
-                <globalization
-                  class="navbar-bg-hover w-[40px] h-[48px] p-[11px] cursor-pointer outline-none"
-                />
-                <template #dropdown>
-                  <el-dropdown-menu class="translation">
-                    <el-dropdown-item
-                      :style="getDropdownItemStyle(locale, 'zh')"
-                      :class="['dark:!text-white', getDropdownItemClass(locale, 'zh')]"
-                      @click="translationCh"
-                    >
-                      <span v-show="locale === 'zh'" class="check-zh">
-                        <IconifyIconOffline :icon="Check" />
-                      </span>
-                      简体中文
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      :style="getDropdownItemStyle(locale, 'en')"
-                      :class="['dark:!text-white', getDropdownItemClass(locale, 'en')]"
-                      @click="translationEn"
-                    >
-                      <span v-show="locale === 'en'" class="check-en">
-                        <IconifyIconOffline :icon="Check" />
-                      </span>
-                      English
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>-->
-        <!-- 全屏 -->
-        <FullScreen id="full-screen"/>
-        <!-- 消息通知 -->
-        <!--      <Notice id="header-notice" />-->
-        <!-- 退出登录 -->
-        <el-dropdown trigger="click">
+      <!-- 天气模块 -->
+      <p class="text-gray-100 text-center mr-5">
+        {{ weatherData.location }}&emsp;
+        <i :class="'qi-' + weatherData.icon"/>
+        {{ weatherData.weather }}&emsp;{{
+          weatherData.temperature
+        }}°C&emsp;{{
+          weatherData.windDirection
+        }}&emsp;空气质量：{{ weatherData.air }}
+      </p>
+      <!-- 菜单搜索 -->
+      <Search id="header-search"/>
+      <!-- 国际化 -->
+      <!--      <el-dropdown id="header-translation" trigger="click">
+              <globalization
+                class="navbar-bg-hover w-[40px] h-[48px] p-[11px] cursor-pointer outline-none"
+              />
+              <template #dropdown>
+                <el-dropdown-menu class="translation">
+                  <el-dropdown-item
+                    :style="getDropdownItemStyle(locale, 'zh')"
+                    :class="['dark:!text-white', getDropdownItemClass(locale, 'zh')]"
+                    @click="translationCh"
+                  >
+                    <span v-show="locale === 'zh'" class="check-zh">
+                      <IconifyIconOffline :icon="Check" />
+                    </span>
+                    简体中文
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    :style="getDropdownItemStyle(locale, 'en')"
+                    :class="['dark:!text-white', getDropdownItemClass(locale, 'en')]"
+                    @click="translationEn"
+                  >
+                    <span v-show="locale === 'en'" class="check-en">
+                      <IconifyIconOffline :icon="Check" />
+                    </span>
+                    English
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>-->
+      <!-- 全屏 -->
+      <FullScreen id="full-screen"/>
+      <!-- 消息通知 -->
+      <!--      <Notice id="header-notice" />-->
+      <!-- 退出登录 -->
+      <el-dropdown trigger="click">
         <span class="el-dropdown-link navbar-bg-hover">
           <img :src="userAvatar" :style="avatarsStyle"/>
           <p v-if="username" class="dark:text-white">{{ username }}</p>
         </span>
-          <template #dropdown>
-            <el-dropdown-menu class="logout">
-              <el-dropdown-item @click="logout">
-                <IconifyIconOffline
-                  :icon="LogoutCircleRLine"
-                  style="margin: 5px"
-                />
-                {{ t("buttons.hsLoginOut") }}
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-        <span
-          class="set-icon navbar-bg-hover"
-          :title="t('buttons.hssystemSet')"
-          @click="onPanel"
-        >
-        <IconifyIconOffline :icon="Setting"/>
-      </span>
-      </div>
+        <template #dropdown>
+          <el-dropdown-menu class="logout">
+            <el-dropdown-item @click="logout">
+              <IconifyIconOffline
+                :icon="LogoutCircleRLine"
+                style="margin: 5px"
+              />
+              {{ t("buttons.hsLoginOut") }}
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+      <!--项目配置-->
+<!--      <span-->
+<!--        class="set-icon navbar-bg-hover"-->
+<!--        :title="t('buttons.hssystemSet')"-->
+<!--        @click="onPanel"-->
+<!--      >-->
+<!--        <IconifyIconOffline :icon="Setting"/>-->
+<!--      </span>-->
     </div>
+  </div>
 </template>
 
 <style lang="scss" scoped>
