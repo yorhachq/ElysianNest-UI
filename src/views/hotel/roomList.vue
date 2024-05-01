@@ -289,9 +289,7 @@ onMounted(() => {
 <style scoped>
 .room-list-container {
   max-width: 100vw;
-  margin: 0 auto;
-  padding-right: 20px;
-  padding-left: 20px;
+  margin: 20px;
 }
 
 .filter-panel {
