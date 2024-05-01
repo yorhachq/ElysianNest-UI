@@ -169,6 +169,8 @@
         <template #header>
           <div class="card-header">
             <span>会员成长体系</span>
+            <span
+              class="text-gray-400 text-sm ml-4">通过充值获取会员积分，累计积分可提高会员等级，转换比例：1RMB = 1点会员积分</span>
           </div>
         </template>
         <div class="progress-container">
@@ -373,6 +375,10 @@ const levels = [
 const progressWidth = computed(() => {
   const points = memberInfo.memberPoints
   const level = levels.find(item => item.points > points)
+  if (!level) {
+    // 如果已经达到最高等级,直接返回100%
+    return '100%'
+  }
   const index = levels.indexOf(level)
   if (index === 0) {
     return '0%'

@@ -21,11 +21,12 @@ const themeColors = {
   /* 道奇蓝 */
   default: {
     subMenuActiveText: "#fff",
-    menuBg: "#001529",
+    // menuBg: "#001529",
+    menuBg: "rgb(53 121 243)",
     menuHover: "rgb(64 145 247 / 15%)",
     subMenuBg: "#0f0303",
     subMenuActiveBg: "#4091f7",
-    menuText: "rgb(254 254 254 / 65%)",
+    menuText: "#002c65",
     sidebarLogo: "#002140",
     menuTitleHover: "#fff",
     menuActiveBefore: "#4091f7"

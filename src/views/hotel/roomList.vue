@@ -3,7 +3,7 @@
     <!-- 筛选面板 -->
     <div class="filter-panel bg-white rounded-lg shadow-md p-6">
       <div class="filter-header mb-4">
-        <h2 class="text-xl font-bold mb-4">筛选条件</h2>
+        <h2 class="text-xl font-bold mb-4">房间筛选</h2>
       </div>
       <div class="filter-body">
         <div class="date-picker mb-4">
