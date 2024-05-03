@@ -123,7 +123,7 @@
     </div>
 
     <!-- 预订对话框 -->
-    <el-dialog v-model="bookingDialogVisible" title="预订房间" width="400px">
+    <el-dialog v-model="bookingDialogVisible" v-if="allowCheckin" title="预订房间" width="400px">
       <div class="booking-info">
         <p><strong>房间号:</strong> {{ selectedRoom.roomNumber }}</p>
         <p><strong>房型:</strong> {{ selectedRoom.roomType.typeName }}</p>
@@ -223,10 +223,18 @@ const paginatedRoomList = computed(() => {
 const disabledDate = (date) => {
   return date.getTime() < Date.now() - 24 * 60 * 60 * 1000
 }
-
+let allowCheckin = ref()
 const handleDateChange = () => {
   if (dateRange.value.length === 2) {
-    fetchRooms()
+    if (dateRange.value[0].getTime() === dateRange.value[1].getTime()) {
+      ElMessageBox.alert('入住日期与离店日期不能为同一天', '提示')
+      dateRange.value = []
+      roomList.value = []
+      allowCheckin = false
+    } else {
+      allowCheckin = true
+      fetchRooms()
+    }
   }
 }
 
