@@ -211,7 +211,8 @@
             </el-button>
             <el-button
               v-if="
-                scope.row.status !== '已退房' && scope.row.status !== '已取消'
+                scope.row.status !== '已退房' && scope.row.status !== '已取消' &&
+                scope.row.status !== '入住中'
               "
               type="danger"
               link
