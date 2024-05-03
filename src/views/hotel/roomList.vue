@@ -129,7 +129,14 @@
         <p><strong>房型:</strong> {{ selectedRoom.roomType.typeName }}</p>
         <p><strong>入住日期:</strong> {{ formatDate(dateRange[0]) }}</p>
         <p><strong>离店日期:</strong> {{ formatDate(dateRange[1]) }}</p>
-        <p><strong>价格:</strong> ¥{{ selectedRoom.roomType.price }}/晚</p>
+        <p><strong>单价:</strong> ¥{{ selectedRoom.roomType.price }}/晚</p>
+        <p><strong>天数:</strong> {{
+            (dateRange[1].getTime() - dateRange[0].getTime()) / 1000 / 60 / 60 / 24
+          }}天</p>
+        <p class="text-red-500 text-lg text-end"><strong>总价:</strong>
+          ¥{{
+            selectedRoom.roomType.price * (dateRange[1].getTime() - dateRange[0].getTime()) / 1000 / 60 / 60 / 24
+          }}</p>
       </div>
       <div class="booking-actions">
         <el-button type="primary" @click="handleConfirmBooking">确认预订</el-button>
