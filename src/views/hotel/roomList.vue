@@ -239,6 +239,8 @@ const handleDateChange = () => {
 }
 
 const handleFilterChange = (type, value) => {
+  // 将页码重置为1
+  currentPage.value = 1
   if (type === 'roomType') {
     selectedRoomType.value = value
   } else if (type === 'floor') {
