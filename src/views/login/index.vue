@@ -15,7 +15,7 @@ import {useLayout} from "@/layout/hooks/useLayout";
 import {useUserStoreHook} from "@/store/modules/user";
 import {initRouter, getTopMenu} from "@/router/utils";
 import {bg, avatar, illustration} from "./utils/static";
-import {ref, toRaw, reactive, computed} from "vue";
+import {ref, toRaw, reactive, computed, watch} from "vue";
 import {useRenderIcon} from "@/components/ReIcon/src/hooks";
 import {useTranslationLang} from "@/layout/hooks/useTranslationLang";
 import {useDataThemeChange} from "@/layout/hooks/useDataThemeChange";
@@ -27,11 +27,13 @@ import Lock from "@iconify-icons/ri/lock-fill";
 import Check from "@iconify-icons/ep/check";
 import User from "@iconify-icons/ri/user-3-fill";
 import Regist from "@/views/login/components/regist.vue";
+import ReImageVerify from "@/components/ReImageVerify/src/index.vue";
 
 defineOptions({
   name: "Login"
 });
 
+const imgCode = ref("");
 const router = useRouter();
 const loading = ref(false);
 const disabled = ref(false);
@@ -50,7 +52,8 @@ const {locale, translationCh, translationEn} = useTranslationLang();
 
 const ruleForm = reactive({
   username: "",
-  password: ""
+  password: "",
+  verifyCode: ""
 });
 
 const onLogin = async (formEl: FormInstance | undefined) => {
@@ -93,6 +96,10 @@ const immediateDebounce: any = debounce(
 useEventListener(document, "keypress", ({code}) => {
   if (code === "Enter" && !disabled.value && !loading.value)
     immediateDebounce(ruleFormRef.value);
+});
+
+watch(imgCode, value => {
+  useUserStoreHook().SET_VERIFYCODE(value);
 });
 
 const {VITE_UI_URL} = import.meta.env;
@@ -197,6 +204,22 @@ const {VITE_UI_URL} = import.meta.env;
                   :placeholder="t('login.password')"
                   :prefix-icon="useRenderIcon(Lock)"
                 />
+              </el-form-item>
+            </Motion>
+
+            <!--图形验证码-->
+            <Motion :delay="200">
+              <el-form-item prop="verifyCode">
+                <el-input
+                  v-model="ruleForm.verifyCode"
+                  clearable
+                  :placeholder="t('login.verifyCode')"
+                  :prefix-icon="useRenderIcon('ri:shield-keyhole-line')"
+                >
+                  <template v-slot:append>
+                    <ReImageVerify v-model:code="imgCode" />
+                  </template>
+                </el-input>
               </el-form-item>
             </Motion>
 
