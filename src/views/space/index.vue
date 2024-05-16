@@ -202,36 +202,91 @@
 
       <!-- 充值对话框 -->
       <el-dialog v-model="rechargeDialogVisible" title="会员充值">
-        <el-form
-          :model="rechargeForm"
-          :rules="rechargeRules"
-          ref="rechargeFormRef"
-          label-width="100px"
+        <!--        <el-form
+                  :model="rechargeForm"
+                  :rules="rechargeRules"
+                  ref="rechargeFormRef"
+                  label-width="100px"
+                >
+                  <el-form-item label="充值金额" prop="amount">
+                    <el-input-number v-model="rechargeForm.amount" :min="10"/>
+                  </el-form-item>
+                  <el-form-item label="支付方式" prop="paymentMethod">
+                    <el-select v-model="rechargeForm.paymentMethod">
+                      <el-option label="支付宝" value="支付宝"/>
+                      <el-option label="微信" value="微信"/>
+                      <el-option label="现金" value="现金"/>
+                    </el-select>
+                  </el-form-item>
+                </el-form>
+                <template #footer>
+                <span class="dialog-footer">
+                  <el-button @click="rechargeDialogVisible = false">取消</el-button>
+                  <el-button type="primary" @click="submitRecharge">确定</el-button>
+                </span>
+                </template>-->
+        <!-- 充值档位卡片 -->
+        <div class="recharge-levels">
+          <div
+            v-for="level in rechargeLevels"
+            :key="level.amount"
+            class="recharge-level border-2 border-blue-300 hover:border-amber-500 rounded-lg p-2 ml-3 mr-3"
+            @click="showQRCode(level.amount)"
+          >
+            <img :src="level.image" alt="充值档位" class="level-image"/>
+            <div class="level-amount">{{ level.amount }} 元</div>
+          </div>
+        </div>
+
+        <!-- 二维码支付对话框 -->
+        <el-dialog
+          v-model="qrCodeVisible"
+          title="扫码支付"
+          width="400px"
+          :show-close="false"
+          style="margin-top: 25vh;"
+          center
+          close-on-click-modal
+          @closed="submitRecharge"
         >
-          <el-form-item label="充值金额" prop="amount">
-            <el-input-number v-model="rechargeForm.amount" :min="10"/>
-          </el-form-item>
-          <el-form-item label="支付方式" prop="paymentMethod">
-            <el-select v-model="rechargeForm.paymentMethod">
-              <el-option label="支付宝" value="支付宝"/>
-              <el-option label="微信" value="微信"/>
-              <el-option label="现金" value="现金"/>
-            </el-select>
-          </el-form-item>
-        </el-form>
-        <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="rechargeDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitRecharge">确定</el-button>
-        </span>
-        </template>
+          <div class="qr-code-container">
+            <el-button-group class="mb-4">
+              <el-button
+                style="width: 8rem;"
+                :type="rechargeForm.paymentMethod === 'alipay' ? 'primary' : ''"
+                @click="selectPaymentMethod('alipay')"
+              >
+                <template v-if="true">
+                  <img
+                    src="https://yorha-chq-picture.oss-cn-shanghai.aliyuncs.com/elysian-nest/bi--alipay.svg"
+                    alt="支付宝Logo" style="height: 20px; margin-right: 10px;" draggable="false">
+                </template>
+                支付宝
+              </el-button>
+              <el-button
+                style="width: 8rem;"
+                :type="rechargeForm.paymentMethod === 'wechat' ? 'primary' : ''"
+                @click="selectPaymentMethod('wechat')"
+              >
+                <template v-if="true">
+                  <img
+                    src="https://yorha-chq-picture.oss-cn-shanghai.aliyuncs.com/elysian-nest/ri--wechat-pay-fill.svg"
+                    alt="微信支付Logo" style="height: 20px; margin-right: 10px;" draggable="false">
+                </template>
+                微信支付
+              </el-button>
+            </el-button-group>
+            <img :src="currentQRCodeUrl" alt="支付二维码" class="qr-code-image" draggable="false"/>
+            <div class="qr-code-amount">支付金额: {{ currentAmount }} 元</div>
+          </div>
+        </el-dialog>
       </el-dialog>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {reactive, ref, onMounted, computed} from "vue";
+import {reactive, ref, onMounted, computed, Ref} from "vue";
 import {
   getWeather,
   getUserInfo,
@@ -250,6 +305,7 @@ import {getToken} from "@/utils/auth";
 import UpdatePwd from "@/views/space/components/updatePwd.vue";
 import {storageLocal} from "@pureadmin/utils";
 import {getMemberInfo, rechargeMember} from "@/api/hotelMember";
+import {FormInstance} from "element-plus";
 
 const editUserForm = ref(null);
 
@@ -504,13 +560,14 @@ const fetchMemberInfo = async () => {
     console.error('获取会员信息失败:', error)
   }
 }
+
 // 充值
 const rechargeFormRef = ref<FormInstance>();
 const rechargeDialogVisible = ref(false)
 const rechargeForm = reactive({
   memberId: 0,
   amount: 0,
-  paymentMethod: ''
+  paymentMethod: 'wechat'
 })
 const rechargeRules = reactive({
   amount: [
@@ -523,26 +580,76 @@ const openRechargeDialog = () => {
   rechargeDialogVisible.value = true
 }
 const submitRecharge = async () => {
-  await rechargeFormRef.value?.validate(async (valid: boolean) => {
-    if (valid) {
-      try {
-        rechargeForm.memberId = memberInfo.memberId;
-        const res = await rechargeMember(rechargeForm)
-        if (res.success) {
-          message('充值成功', {type: 'success'})
-          rechargeDialogVisible.value = false
-          // 更新会员账户信息
-          await fetchMemberInfo()
-        } else {
-          message(res.message, {type: 'error'})
-        }
-      } catch (error) {
-        console.error('充值失败:', error)
-        message('充值失败,请稍后重试', {type: 'error'})
-      }
+  rechargeForm.amount = currentAmount;
+  // await rechargeFormRef.value?.validate(async (valid: boolean) => {
+  //   if (valid) {
+  try {
+    rechargeForm.memberId = memberInfo.memberId;
+    rechargeForm.paymentMethod = rechargeForm.paymentMethod === 'alipay' ? '支付宝' : '微信';
+    const res = await rechargeMember(rechargeForm)
+    if (res.success) {
+      message('充值成功', {type: 'success'})
+      rechargeDialogVisible.value = false
+      // 更新会员账户信息
+      await fetchMemberInfo()
+    } else {
+      message(res.message, {type: 'error'})
     }
-  })
+  } catch (error) {
+    console.error('充值失败:', error)
+    message('充值失败,请稍后重试', {type: 'error'})
+  } finally {
+    rechargeForm.paymentMethod = 'wechat';
+  }
+  //   }
+  // })
 }
+
+// 占位图片URL
+const placeholderImage = 'https://via.placeholder.com/150';
+
+// 充值档位数据
+const rechargeLevels = [
+  {amount: 6, image: "https://yorha-chq-picture.oss-cn-shanghai.aliyuncs.com/elysian-nest/recharge_6.png"},
+  {amount: 30, image: "https://yorha-chq-picture.oss-cn-shanghai.aliyuncs.com/elysian-nest/recharge_30.png"},
+  {amount: 98, image: "https://yorha-chq-picture.oss-cn-shanghai.aliyuncs.com/elysian-nest/recharge_98.png"},
+  {amount: 198, image: "https://yorha-chq-picture.oss-cn-shanghai.aliyuncs.com/elysian-nest/recharge_198.png"},
+  {amount: 328, image: "https://yorha-chq-picture.oss-cn-shanghai.aliyuncs.com/elysian-nest/recharge_328.png"},
+  {amount: 648, image: "https://yorha-chq-picture.oss-cn-shanghai.aliyuncs.com/elysian-nest/recharge_648.png"}
+];
+
+// 当前选择的充值金额
+const currentAmount = ref(0);
+
+// 二维码支付对话框的显示状态
+const qrCodeVisible = ref(false);
+
+// 显示二维码支付对话框
+const showQRCode = (amount: number) => {
+  currentAmount.value = amount;
+  qrCodeVisible.value = true;
+};
+
+// 选择支付方式
+const selectPaymentMethod = (method: 'alipay' | 'wechat') => {
+  rechargeForm.paymentMethod = method;
+};
+
+// 微信支付二维码前缀
+const wechatQRCodeBase = "https://yorha-chq-picture.oss-cn-shanghai.aliyuncs.com/elysian-nest/wechat_";
+
+// 支付宝二维码前缀
+const alipayQRCodeBase = "https://yorha-chq-picture.oss-cn-shanghai.aliyuncs.com/elysian-nest/alipay_";
+
+// 计算支付二维码URL
+const currentQRCodeUrl = computed(() => {
+  if (rechargeForm.paymentMethod === 'alipay') {
+    return `${alipayQRCodeBase}${currentAmount.value}.png`;
+  } else if (rechargeForm.paymentMethod === 'wechat') {
+    return `${wechatQRCodeBase}${currentAmount.value}.png`;
+  }
+});
+
 onMounted(async () => {
   await fetchUserInfo();
   await fetchMemberInfo();
@@ -820,6 +927,61 @@ onMounted(async () => {
 .current-level {
   margin-top: 30px;
   text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.recharge-card {
+  width: 800px;
+}
+
+.recharge-levels {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.recharge-level {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.recharge-level:hover {
+  transform: scale(1.1);
+}
+
+.level-amount {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.level-image {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.qr-code-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.qr-code-image {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  margin-bottom: 20px;
+}
+
+.qr-code-amount {
   font-size: 18px;
   font-weight: bold;
 }
